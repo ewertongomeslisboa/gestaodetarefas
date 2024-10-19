@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gestão de Tarefas</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <!-- Link para o arquivo de estilos personalizados -->
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='styles.css') }}"
+    />
+  </head>
+  <body>
+    <div class="container mt-4">
+      <h2 class="text-center">Gestão de Tarefas</h2>
+
+      <!-- Formulário para adicionar tarefa -->
+      <form id="taskForm">
+        <div class="mb-3">
+          <label for="taskName" class="form-label">Nome da Tarefa</label>
+          <input
+            type="text"
+            class="form-control"
+            id="taskName"
+            placeholder="Digite a tarefa"
+            required
+          />
+        <br>
+        <div></div>
+        <button type="submit" class="btn btn-primary">Adicionar Tarefa</button>
+        <button id="resetTasks" type="button" class="btn btn-danger mt-2">
+          Resetar Tarefas
+        </button>
+
+      <!-- Lista de Tarefas -->
+      <h3 class="mt-4">Lista de Tarefas</h3>
+      <ul id="taskList" class="list-group mt-3"></ul>
+    </form>
+      </div>
+        </div>
+        
+      <br />
+
+      <!-- Seções de Tarefas com containers quadrados -->
+      <div class="row">
+        <!-- A Fazer -->
+        <div class="col-md-4">
+          <div class="card mb-4">
+            <div class="card-header bg-info text-white">A Fazer</div>
+            <ul id="todoList" class="list-group list-group-flush">
+            </ul>
+          </div>
+        </div>
+
+        <!-- Realizando -->
+        <div class="col-md-4">
+          <div class="card mb-4">
+            <div class="card-header bg-warning text-white">Realizando</div>
+            <ul id="doingList" class="list-group list-group-flush">
+            </ul>
+          </div>
+        </div>
+
+         <!-- Completas -->
+         <div class="col-md-4">
+          <div class="card mb-4">
+            <div class="card-header bg-success text-white">Completas</div>
+            <ul id="doneList" class="list-group list-group-flush">
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    </div>
+
+    <script>
+      // Função para carregar as tarefas na lista
+      function loadTasks() {
+          fetch('/listar_tarefas')
+          .then(response => response.json())
+          .then(tasks => {
+            document.getElementById('todoList').innerHTML = '';
+            document.getElementById('doingList').innerHTML = '';
+            document.getElementById('doneList').innerHTML = '';
+
+              tasks.forEach((task, index) => {
+                  const li = document.createElement('li');
+                  li.classList.add('list-group-item');
+                  li.innerText = task.name;
+                  taskList.appendChild(li);
+              }
+
+
+              );
+          });
+      }
+       // Permite arrastar sobre a lista
+       function allowDrop(event) {
+            event.preventDefault();
+        }
+
+        // Função para lidar com o drop
+        function drop(event, newStatus) {
+            event.preventDefault();
+            const index = event.dataTransfer.getData('text/plain');
+            updateTaskStatus(index, newStatus);
+        }
+
+        // Atualiza o status da tarefa
+        function updateTaskStatus(index, newStatus) {
+            fetch(`/atualizar_status/${index}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: newStatus })  // Envia o novo status
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                loadTasks();  // Atualiza a lista de tarefas
+            })
+            .catch(error => {
+                alert('Erro ao atualizar a tarefa.');
+            });
+        }
+
+
+      // Adiciona a tarefa ao enviar o formulário
+      document.getElementById('taskForm').addEventListener('submit', function(e) {
+          e.preventDefault();
+
+          const taskName = document.getElementById('taskName').value;
+
+          fetch('/adicionar_tarefa', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ name: taskName })
+          })
+          .then(response => response.json())
+          .then(data => {
+              alert(data.message);
+              document.getElementById('taskName').value = '';  // Limpa o campo de texto
+              loadTasks();  // Atualiza a lista de tarefas
+          });
+      });
+      window.onload = loadTasks;
+    </script>
+    <script src="{{ url_for('static', filename='resetTasks.js') }}"></script>
+    <script src="{{ url_for('static', filename='loadTasks.js') }}"></script>
+    
+    
+  </body>
+</html>
