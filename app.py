@@ -36,6 +36,13 @@ def listar_tarefas():
 
 @app.route('/resetar_tarefas', methods=['DELETE'])
 def resetar_tarefas():
+    try:
+
+        tasks.clear()
+        return jsonify({'Sucess': True, 'message': 'Tarefas resetadas com sucesso!'})
+    except Exception as e:
+        return jsonify({'sucess': False, 'message': str(e)})
+
     # Limpa a lista de tarefas(ajuste para o que estiver usando como armazenamento)
     tasks.clear()
     return jsonify({'message': 'Todas as tarefas foram resetadas com sucesso!'})
